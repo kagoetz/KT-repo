@@ -1,6 +1,11 @@
 from xlrd import open_workbook,XL_CELL_TEXT
 import math as m
 import numpy as np
+import xlsxwriter
+import shutil
+import os
+
+#Must be in a directory that has a "data_entry" xlsx file and a "Logs" folder
 
 #Reads data points from excel spreadsheet and appends to data list
 book = open_workbook('data_entry.xlsx')
@@ -282,3 +287,56 @@ if c1_y0>c2_y0:
     print("The laser is angled "+str(pitch)+" degrees to the down with respect to the central axis.")
     print("Turn the pitch knob " + str(pitchturns) + " revolutions to the left.")
     print("Pass " + str(linespitch) + " lines on pitch knob.\n")
+
+
+#What adjustment is this
+adjustment=1
+
+# Create a workbook and add a worksheet.
+workbook = xlsxwriter.Workbook("adjust_log_"+str(adjustment)+".xlsx")
+sheet1 = workbook.add_worksheet()
+
+#Compile variables for export into a list
+results=[dx,xshift,xturns,xdir,dy,yshift,yturns,ydir,yaw,yawshift,yawturns,yawdir,pitch,pitchshift,pitchturns,pitchdir]
+
+# Write data headers.
+sheet1.write('A1', "Adjustment No.")
+sheet1.write('B1', "Dx")
+sheet1.write('C1', "X Shifted to")
+sheet1.write('D1', "X Turns")
+sheet1.write('E1', "X Turn to")
+sheet1.write('F1', "Dy")
+sheet1.write('G1', "Y Shifted to")
+sheet1.write('H1', "Y Turns")
+sheet1.write('I1', "Y Turn to")
+sheet1.write('J1', "Yaw")
+sheet1.write('K1', "Yaw Shifted to")
+sheet1.write('L1', "Yaw Turns")
+sheet1.write('M1', "Yaw Turn to")
+sheet1.write('N1', "Pitch")
+sheet1.write('O1', "Pitch Shifted to")
+sheet1.write('P1', "Pitch Turns")
+sheet1.write('Q1', "Pitch Turn to")
+
+#Write variables to correct row (for easier merging of all files in an adjustment session in future)
+sheet1.write("A"+str(adjustment+1),adjustment)
+sheet1.write("B"+str(adjustment+1), results[0])
+sheet1.write("C"+str(adjustment+1), results[1])
+sheet1.write("D"+str(adjustment+1), results[2])
+sheet1.write("E"+str(adjustment+1), results[3])
+sheet1.write("F"+str(adjustment+1), results[4])
+sheet1.write("G"+str(adjustment+1), results[5])
+sheet1.write("H"+str(adjustment+1), results[6])
+sheet1.write("I"+str(adjustment+1), results[7])
+sheet1.write("J"+str(adjustment+1), results[8])
+sheet1.write("K"+str(adjustment+1), results[9])
+sheet1.write("L"+str(adjustment+1), results[10])
+sheet1.write("M"+str(adjustment+1), results[11])
+sheet1.write("N"+str(adjustment+1), results[12])
+sheet1.write("O"+str(adjustment+1), results[13])
+sheet1.write("P"+str(adjustment+1), results[14])
+sheet1.write("Q"+str(adjustment+1), results[15])
+workbook.close()
+
+#Move file into logs folder
+shutil.move(os.path.abspath("adjust_log_"+str(adjustment)+".xlsx"), "Logs/")
