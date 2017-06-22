@@ -205,23 +205,39 @@ dy=round_to_n(dy,6)
 xturns=round_to_n(xturns,6)
 yturns=round_to_n(yturns,6)
 
+#finds the number of lines to pass on each knob for the required partial revolution
+linesx=round_to_n(rev_to_line(xturns,0),6)
+linesy=round_to_n(rev_to_line(yturns,0),6)
+
 if dx>0:
     #laser is shifted to the left, and needs to be moved to the right, so knob needs to turn left
+    xshift="left"
+    xdir="left"
     print("The laser is "+str(dx)+" microns to the left of the central axis.")
-    print("Turn the X knob " + str(xturns) + " revolutions to the left.\n")
+    print("Turn the X knob " + str(xturns) + " revolutions to the left.")
+    print("Pass " + str(linesx) + " lines on x knob.\n")
 else:
     #laser is shifted to the right, and needs to be moved to the left, so knob needs to turn right
+    xshift="right"
+    xdir="right"
     print("The laser is "+str(abs(dx))+" microns to the right of the central axis.")
-    print("Turn the X knob " + str(xturns) + " revolutions to the right.\n")
+    print("Turn the X knob " + str(xturns) + " revolutions to the right.")
+    print("Pass " + str(linesx) + " lines on x knob.\n")
 
 if dy>0:
     #laser is above centerline, and needs to be moved downward to decrease its y-value. knob turns to the right
+    yshift="above"
+    ydir="right"
     print("The laser is "+str(dy)+" microns to the above the central axis.")
-    print("Turn the Y knob " + str(yturns) + " revolutions to the right.\n")
+    print("Turn the Y knob " + str(yturns) + " revolutions to the right.")
+    print("Pass " + str(linesy) + " lines on y knob.\n")
 else:
     #laser is below centerline, and needs to be moved upward to increase its y-value. knob turns to the left
+    yshift="below"
+    ydir="left"
     print("The laser is "+str(abs(dy))+" microns to the below the central axis.")
-    print("Turn the Y knob " + str(yturns) + " revolutions to the left.\n")
+    print("Turn the Y knob " + str(yturns) + " revolutions to the left.")
+    print("Pass " + str(linesy) + " lines on y knob.\n")
 
 #angular displacement
 #knob spec - 1 revolution is 8mrad of angular displacement
@@ -234,54 +250,35 @@ pitch=round_to_n(pitch,6)
 yawturns=round_to_n(yawturns,6)
 pitchturns=round_to_n(pitchturns,6)
 
-if c1_x0<c2_x0:
-    #laser is pointing to the right. the laser needs to be angled to the left to align with center. Move yaw knob to the right
-    print("The laser is angled "+str(yaw)+" degrees to the right of the central axis.")
-    print("Turn the yaw knob " + str(yawturns) + " revolutions to the right.\n")
-if c1_x0>c2_x0:
-    #laser is pointing to the left. the laser needs to be angled to the right to align with center. Move yaw knob to the left
-    print("The laser is angled "+str(yaw)+" degrees to the left of the central axis.")
-    print("Turn the yaw knob " + str(yawturns) + " revolutions to the left.\n")
-
-if c1_y0<c2_y0:
-    #laser is pointing upward. the laser needs to be angled to the down to align with center. Move pitch knob to the right
-    print("The laser is angled "+str(pitch)+" degrees to the up with respect to the central axis.")
-    print("Turn the pitch knob " + str(pitchturns) + " revolutions to the right.\n")
-if c1_y0>c2_y0:
-    #laser is pointing downward. the laser needs to be angled to the up to align with center. Move pitch knob to the left
-    print("The laser is angled "+str(pitch)+" degrees to the down with respect to the central axis.")
-    print("Turn the pitch knob " + str(pitchturns) + " revolutions to the left.\n")
-
 #finds the number of lines to pass on each knob for the required partial revolution
-linesx=round_to_n(rev_to_line(xturns,0),6)
-linesy=round_to_n(rev_to_line(yturns,0),6)
 linespitch=round_to_n(rev_to_line(pitchturns,1),6)
 linesyaw=round_to_n(rev_to_line(yawturns,1),6)
 
-if dx>0:
-    #laser is shifted to the left, and needs to be moved to the right, so knob needs to turn left
-    print("Pass " + str(linesx) + " lines on x knob and turn to the left.\n")
-else:
-    #laser is shifted to the right, and needs to be moved to the left, so knob needs to turn right
-    print("Pass " + str(linesx) + " lines on x knob and turn to the right.\n")
-
-if dy>0:
-    #laser is above centerline, and needs to be moved downward to decrease its y-value. knob turns to the right
-    print("Pass " + str(linesy) + " lines on y knob and turn to the right.\n")
-else:
-    #laser is below centerline, and needs to be moved upward to increase its y-value. knob turns to the left
-    print("Pass " + str(linesy) + " lines on y knob and turn to the left.\n")
-
 if c1_x0<c2_x0:
     #laser is pointing to the right. the laser needs to be angled to the left to align with center. Move yaw knob to the right
-    print("Pass " + str(linesyaw) + " lines on yaw knob and turn to the right.\n")
+    yawshift="right"
+    yawdir="right"
+    print("The laser is angled "+str(yaw)+" degrees to the right of the central axis.")
+    print("Turn the yaw knob " + str(yawturns) + " revolutions to the right.")
+    print("Pass " + str(linesyaw) + " lines on yaw knob.\n")
 if c1_x0>c2_x0:
     #laser is pointing to the left. the laser needs to be angled to the right to align with center. Move yaw knob to the left
-    print("Pass " + str(linesyaw) + " lines on yaw knob and turn to the left.\n")
-
+    yawshift="left"
+    yawdir="left"
+    print("The laser is angled "+str(yaw)+" degrees to the left of the central axis.")
+    print("Turn the yaw knob " + str(yawturns) + " revolutions to the left.")
+    print("Pass " + str(linesyaw) + " lines on yaw knob.\n")  
 if c1_y0<c2_y0:
     #laser is pointing upward. the laser needs to be angled to the down to align with center. Move pitch knob to the right
-    print("Pass " + str(linespitch) + " lines on pitch knob and turn to the right.\n")
+    pitchshift="up"
+    pitchdir="right"
+    print("The laser is angled "+str(pitch)+" degrees to the up with respect to the central axis.")
+    print("Turn the pitch knob " + str(pitchturns) + " revolutions to the right.")
+    print("Pass " + str(linespitch) + " lines on pitch knob.\n")
 if c1_y0>c2_y0:
     #laser is pointing downward. the laser needs to be angled to the up to align with center. Move pitch knob to the left
-    print("Pass " + str(linespitch) + " lines on pitch knob and turn to the left.\n")
+    pitchshift="down"
+    pitchdir="left"
+    print("The laser is angled "+str(pitch)+" degrees to the down with respect to the central axis.")
+    print("Turn the pitch knob " + str(pitchturns) + " revolutions to the left.")
+    print("Pass " + str(linespitch) + " lines on pitch knob.\n")
