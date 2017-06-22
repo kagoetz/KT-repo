@@ -2,17 +2,13 @@ from xlrd import open_workbook,XL_CELL_TEXT
 import math as m
 import numpy as np
 
+#Reads data points from excel spreadsheet and appends to data list
 book = open_workbook('data_entry.xlsx')
 sheet = book.sheet_by_index(0)
-
 cell = sheet.cell(0,8)
-#print (cell)
-#print (cell.value)
-
 data=[]
 for i in range(sheet.nrows):
     data.append(sheet.cell_value(i,8))
-
 CCD_pos=[2214269-1374000,2214269]
 
 #Retrieve data from the data list and convert pixels to microns (each pixel is 12 microns)
@@ -38,14 +34,14 @@ z2=CCD_pos[1]
 
 #functions
 def circle_center_x(x_0, x_1, x_2, y_0, y_1, y_2):
-    #this function find the x coordinate of the center of a circle given 3 points on the circle
+    #finds the x coordinate of the center of a circle given 3 points on the circle
     m_a = (y_1-y_0)/(x_1-x_0)
     m_b = (y_2-y_1)/(x_2-x_1)
     center_x = (m_b*(x_1+x_0) + (m_a*m_b*(y_0-y_2)) - m_a*(x_2+x_1))/(2*(m_b-m_a))
     return center_x
 
 def circle_center_y(center_x, x_0, x_1, y_0, y_1):
-	#this function find the y coordinate of the center of a circle given 
+	#finds the y coordinate of the center of a circle given 
 	#2 points on the circle and the x coordinate of the circle center
     m_a = (y_1-y_0)/(x_1-x_0)
     y = (-1/m_a)*(center_x - ((x_1+x_0)/2)) + ((y_1+y_0)/2)
@@ -80,6 +76,8 @@ def round_to_n(x, n):
     return round(x * factor) / factor
 
 def find_center90(x1,y1,x2,y2): 
+	#uses 2 points on the circle, given that they are 90 degrees apart,
+	#to find the center x and y coordinates and radius in a list
     slope=(y2-y1)/(x2-x1)
     perp=-1/slope
     xm=(x1+x2)/2
@@ -93,19 +91,21 @@ def find_center90(x1,y1,x2,y2):
     xc=xm-dx
     yc=ym-dy
     dst=m.sqrt(((yc-y1)**2)+((xc-x1)**2))
-    return [xc,yc,r,dst,xm,ym]
+    return [xc,yc,r]
 
 def find_center180(x1,y1,x3,y3):
+	#uses 2 points on the circle, given that they are 180 degrees apart,
+	#to find the center x and y coordinates and radius in a list
     slope=(y3-y1)/(x3-x1)
     xc=(x1+x3)/2
     yc=(y1+y3)/2
     dist=m.sqrt(((y3-y1)**2)+((x3-x1)**2))
     r=dist/2
     dst=m.sqrt(((yc-y1)**2)+((xc-x1)**2))
-    return[xc,yc,r,dst]
+    return[xc,yc,r]
 
 def rev_to_line(revs,knob):
-    #gives lines to pass after full revolutions (describes the partial revolution)
+    #gives lines to pass on the knob after full revolutions (describes the partial revolution)
     revs_dec = (revs-int(revs))
     degrees=revs_dec*360
     # knob=0 if you are working with x or y knob
@@ -118,10 +118,16 @@ def rev_to_line(revs,knob):
 
 #Use the functions to characterize the circles
 
+#circle one is the closer circle
+#characterizing circle one: all points must be on CCD
 center1_x=circle_center_x(c1_x0,c1_x1,c1_x2,c1_y0,c1_y1,c1_y2)
 center1_y=circle_center_y(center1_x,c1_x0,c1_x1,c1_y0,c1_y1)
 rad1=circle_radius(c1_x0,c1_y0,center1_x,center1_y)
 
+#circle 2 is the farther circle.
+#determines whether any of the points are off the CCD (coordinates of 0,0)
+#if so, determines which point is, and uses the other two to characterize
+#if not, characterizes as above in circle one
 if c2_x0==0:
     circle2=find_center90(c2_x2,c2_y2,c2_x1,c2_y1)
     center2_x=circle2[0]
@@ -142,6 +148,7 @@ else:
     center2_y=circle_center_y(center2_x,c2_x0,c2_x1,c2_y0,c2_y1)
     rad2=circle_radius(c2_x0,c2_y0,center2_x,center2_y)
 
+#prints characteristicsm as well as variables formatted to copy to matlab visualization
 print("Circle one is centered at ("+ str(center1_x) + "," + str(center1_y) + ") and has a radius of " + str(rad1)+".\n")
 print("Circle two is centered at ("+ str(center2_x) + "," + str(center2_y) + ") and has a radius of " + str(rad2)+".\n")
 print("c1_x0="+str(c1_x0)+"\n"+"c1_y0="+str(c1_y0))
@@ -168,22 +175,33 @@ c2_y0-=center2_y
 c2_y1-=center2_y
 c2_y2-=center2_y
  
+#finds where laser intersects with X axis in XZ plane, returns dx 
 dx=get_y_intercept(z1,c1_x0,z2,c2_x0)
-z_xz=get_x_intercept(z1,c1_x0,z2,c2_x0)
+
+#finds where laser intersects with Y axis in YZ plane, returns dy
 dy=get_y_intercept(z1,c1_y0,z2,c2_y0)
+
+#finds where laser intersects with Z axis in XZ plane, returns z coordinate
+z_xz=get_x_intercept(z1,c1_x0,z2,c2_x0)
+
+#finds where laser intersects with Z axis in YZ plane, returns z coordinate
 z_yz=get_x_intercept(z1,c1_y0,z2,c2_y0)
 
+#finds angle between laser and Z axis in XZ plane, returns yaw 
 yaw=get_angle(dx,z_xz)
+
+#finds angle between laser and Z axis in YZ plane, returns pitch 
 pitch=get_angle(dy,z_yz)
 
 
 #translational displacement
+#note: spec on laser - one x- or y-knob revolution translates laser 254 microns
 xturns=abs(dx/254)
 yturns=abs(dy/254)
 
+#round values to 6 sig figs
 dx=round_to_n(dx,6)
 dy=round_to_n(dy,6)
-
 xturns=round_to_n(xturns,6)
 yturns=round_to_n(yturns,6)
 
@@ -206,12 +224,13 @@ else:
     print("Turn the Y knob " + str(yturns) + " revolutions to the left.\n")
 
 #angular displacement
+#knob spec - 1 revolution is 8mrad of angular displacement
 yawturns=yaw/(.008*180/m.pi)
 pitchturns=pitch/(.008*180/m.pi)
 
+#round values to 6 sig figs
 yaw=round_to_n(yaw,6)
 pitch=round_to_n(pitch,6)
-
 yawturns=round_to_n(yawturns,6)
 pitchturns=round_to_n(pitchturns,6)
 
@@ -233,6 +252,7 @@ if c1_y0>c2_y0:
     print("The laser is angled "+str(pitch)+" degrees to the down with respect to the central axis.")
     print("Turn the pitch knob " + str(pitchturns) + " revolutions to the left.\n")
 
+#finds the number of lines to pass on each knob for the required partial revolution
 linesx=round_to_n(rev_to_line(xturns,0),6)
 linesy=round_to_n(rev_to_line(yturns,0),6)
 linespitch=round_to_n(rev_to_line(pitchturns,1),6)
